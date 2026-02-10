@@ -36,6 +36,9 @@
         todo_priority?: number; 
     }
 
+    // Should be changed in prod
+    // For dev purposes the localhost should be changed to a an ip of the machine
+    // that runs the backend
     const API_BASE_URL = 'http://localhost:8000';
 
     let hello = $state('loading...');
