@@ -1,3 +1,7 @@
+Make sure you are installing latest svelte+tailwindcss+shadcn setup and all necessary components!!!
+Here I use shadcn: button, card, modewatcher and @lucide-svelte
+
+Setup this frontend bullshit properly in order to avoid npm HELL
 # sv
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
