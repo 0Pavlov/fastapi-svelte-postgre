@@ -27,4 +27,3 @@ frontend/*.log
 # Testing and coverage
 frontend/coverage/
 frontend/.nyc_output/
-
