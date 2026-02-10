@@ -62,3 +62,10 @@ Run the development server:
 ```bash
 npm run dev
 ```
+
+Or to be accessible on a local network:
+```bash
+# Also don't forget to change the `localhost` in the +page.svelte file to the
+# ip of the machine which runs the backend
+npm run dev -- --host
+```
