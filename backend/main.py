@@ -78,7 +78,7 @@ app.add_middleware(
 @app.get("/", tags=["Health"])
 async def index():
     """Simple health check endpoint."""
-    return {"status": "Backend is running"}
+    return {"status": "Backend is running 🚀"}
 
 # Get all todos
 @app.get("/todos", response_model=List[TodoResponse], tags=["Todos"])
