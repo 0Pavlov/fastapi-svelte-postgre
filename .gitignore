@@ -2,6 +2,28 @@
 backend/venv/
 
 # Svelte frontend
+# Dependencies
 frontend/node_modules/
+
+# SvelteKit build outputs and cache
 frontend/.svelte-kit/
 frontend/build/
+frontend/dist/
+frontend/.output/
+frontend/.svelte/
+
+# Environment variables
+frontend/.env
+frontend/.env.*
+frontend/.env.local
+
+# Logs and runtime
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+frontend/*.log
+
+# Testing and coverage
+frontend/coverage/
+frontend/.nyc_output/
