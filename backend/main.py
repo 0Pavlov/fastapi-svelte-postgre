@@ -79,3 +79,40 @@ app.add_middleware(
 async def index():
     """Simple health check endpoint."""
     return {"status": "Backend is running"}
+
+# Get all todos
+@app.get("/todos", response_model=List[TodoResponse], tags=["Todos"])
+async def get_todos(
+        first_n: Optional[int] = None,
+        db: AsyncSession = Depends(get_db)
+):
+    """Fetch all or first_n todos."""
+    # Build the query
+    # Select all todos ordered by ids
+    query = select(TodoDB).order_by(TodoDB.id)
+
+    if first_n:
+        # Limit by n if the first_n is present
+        query = query.limit(first_n)
+
+    # Execute query (async)
+    # await pauses here until DB responds
+    result = await db.execute(query)
+
+    # Extract Python objects from the result
+    todos_db = result.scalars().all()
+
+    # Conversion to Pydantic
+    # I have set 'from_attributes=True' in TodoResponse, so if the field names match,
+    # I can let Pydantic handle it
+    # return [TodoResponse.model_validate(todo) for todo in todos_db]
+
+    # Here is the manual mapping to show explicitly what happens
+    return [
+        TodoResponse(
+            todo_id=todo.id,
+            todo_name=todo.name,
+            todo_description=todo.description,
+            todo_priority=Priority(todo.priority) # Convert int to Enum
+        ) for todo in todos_db
+    ]
