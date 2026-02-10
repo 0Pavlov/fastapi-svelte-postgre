@@ -7,10 +7,61 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Annotated, Optional, AsyncGenerator
 from enum import IntEnum
 
+# Custom modules
+from database import engine, Base, AsyncSessionLocal
+from models import TodoDB
+from schemas import (
+        TodoCreate,
+        TodoUpdate,
+        TodoResponse,
+        Priority
+)
+from dependencies import get_db
+
+from contextlib import asynccontextmanager
+from typing import List, Optional
+from sqlalchemy import select, func
+from sqlalchemy.ext.asyncio import AsyncSession
+
+# Lifespan (startup and shutdown)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Code before 'yield' runs when the server starts.
+    Code after 'yield' runs when the server stops.
+    """
+    print("Starting up... Checking Database...")
+    
+    # Create Tables
+    # This creates tables if they don't exist
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    
+    # Create Sample Data (if empty)
+    async with AsyncSessionLocal() as session:
+        # Check count of rows
+        result = await session.execute(select(func.count()).select_from(TodoDB))
+        if result.scalar() == 0:
+            print("Database empty. Seeding sample data...")
+            sample_todos = [
+                TodoDB(name="Test task", description="Test description", priority=1),
+            ]
+            session.add_all(sample_todos)
+            await session.commit()
+    
+    print("System Ready.")
+
+    # The application runs while looking at this point
+    yield
+    
+    print("Shutting down... Closing Database connection.")
+    await engine.dispose()
+
 # The app
 app = FastAPI(
     title="Todo API",
     description="A FastAPI and Postgres async backend",
+    lifespan=lifespan
 )
 
 # CORS configuration to allow frontend talk to the backend
@@ -22,70 +73,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Pydantic models/schemas
-# These classes define the JSON shape expected by the API 
-# (I/O)
-# They act as a filter/validation layer before data touches
-# the logic or database
-
-class Priority(IntEnum):
-    """
-    Priority of the task.
-    Enum to ensure priority is always a specific set of
-    numbers.
-    """
-    LOW = 3
-    MEDIUM = 2
-    HIGH = 1
-
-class TodoBase(BaseModel):
-    """Shared properties for creating or reading todos."""
-    todo_name: str = Field(
-        ...,
-        min_length=3,
-        max_length=512,
-        description="Title"
-    )
-    todo_description: str = Field(
-        ...,
-        description="Details"
-    )
-    todo_priority: Priority = Field(
-        default=Priority.LOW,
-        description="1=High, 2=Med, 3=Low"
-    )
-
-class TodoCreate(TodoBase):
-    """
-    Schema for receiving data from a client (POST request).
-    """
-    # Inherits everything from TodoBase 
-    # We don't need 'id' here because the database 
-    # generates it
-    pass
-
-class TodoUpdate(BaseModel):
-    """
-    Schema for updating (PUT request).
-    All fields are optional.
-    """
-    todo_name: Optional[str] = Field(
-        None,
-        min_length=3,
-        max_length=512
-    )
-    todo_description: Optional[str] = Field(None)
-    todo_priority: Optional[Priority] = Field(None)
-
-class TodoResponse(TodoBase):
-    """Schema for sending data back to the client."""
-    # The DB ID is required when sending data back
-    todo_id: int 
-    # ConfigDict tells Pydantic: 
-    # "It's okay to read data from a non-JSON object 
-    # (like a SQLAlchemy database model) 
-    # and convert it to JSON"
-    model_config = ConfigDict(from_attributes=True)
 
 # A health endpoint
 @app.get("/", tags=["Health"])
