@@ -10,3 +10,4 @@
 # Run the server
 - Dev version `fastapi dev main.py`
 - Prod version `fastapi run main.py`
+- Version to run it in a way it's accessible in local network `uvicorn main:app --host 0.0.0.0 --reload` or `fastapi dev main.py --host 0.0.0.0`
