@@ -39,7 +39,7 @@
     // Should be changed in prod
     // For dev purposes the localhost should be changed to a an ip of the machine
     // that runs the backend
-    const API_BASE_URL = 'http://localhost:8000';
+    const API_BASE_URL = '/api';
 
     let hello = $state('loading...');
     let todos = $state<Todo[]>([]);
@@ -64,12 +64,9 @@
     }
 
     async function getTodos(firstN?: number): Promise<void> {
-        const url = new URL(`${API_BASE_URL}/todos`);
-        if (firstN !== undefined) {
-            url.searchParams.append('first_n', firstN.toString());
-        }
+        const url = firstN ? `${API_BASE_URL}/todos?first_n=${firstN}` : `${API_BASE_URL}/todos`;
         try {
-            todos = await apiRequest<Todo[]>(url.toString());
+            todos = await apiRequest<Todo[]>(url);
         } catch (e) {
             console.error("Polling error:", e);
         }
@@ -113,7 +110,7 @@
 
     async function fetchServer() {
         try {
-            const data = await apiRequest<{status: string}>(`${API_BASE_URL}/`);
+            const data = await apiRequest<{status: string}>(`${API_BASE_URL}/health`);
             hello = data.status;
         } catch (e) {
             hello = "Backend Offline";
