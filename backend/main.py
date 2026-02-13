@@ -75,13 +75,19 @@ app.add_middleware(
 
 
 # A health endpoint
-@app.get("/", tags=["Health"])
+@app.get("/api", tags=["Health"])
 async def index():
     """Simple health check endpoint."""
     return {"status": "Backend is running 🚀"}
 
+# A health endpoint
+@app.get("/api/health", tags=["Health"])
+async def health():
+    """Simple health check endpoint."""
+    return {"status": "Backend is running 🚀"}
+
 # Get all todos
-@app.get("/todos", response_model=List[TodoResponse], tags=["Todos"])
+@app.get("/api/todos", response_model=List[TodoResponse], tags=["Todos"])
 async def get_todos(
         first_n: Optional[int] = None,
         db: AsyncSession = Depends(get_db)
@@ -117,7 +123,7 @@ async def get_todos(
         ) for todo in todos_db
     ]
 
-@app.get("/todos/{todo_id}", response_model=TodoResponse, tags=["Todos"])
+@app.get("/api/todos/{todo_id}", response_model=TodoResponse, tags=["Todos"])
 async def get_todo(
         todo_id: int,
         db: AsyncSession = Depends(get_db)
@@ -139,7 +145,7 @@ async def get_todo(
         todo_priority=Priority(todo.priority)
     )
 
-@app.post("/todos", response_model=TodoResponse, status_code=201, tags=["Todos"])
+@app.post("/api/todos", response_model=TodoResponse, status_code=201, tags=["Todos"])
 async def create_todo(
     todo_data: TodoCreate, 
     db: AsyncSession = Depends(get_db)
@@ -173,7 +179,7 @@ async def create_todo(
         todo_priority=Priority(new_todo.priority)
     )
 
-@app.put("/todos/{todo_id}", response_model=TodoResponse, tags=["Todos"])
+@app.put("/api/todos/{todo_id}", response_model=TodoResponse, tags=["Todos"])
 async def update_todo(
     todo_id: int, 
     updates: TodoUpdate, 
@@ -207,7 +213,7 @@ async def update_todo(
         todo_priority=Priority(todo_db.priority)
     )
 
-@app.delete("/todos/{todo_id}", response_model=TodoResponse, tags=["Todos"])
+@app.delete("/api/todos/{todo_id}", response_model=TodoResponse, tags=["Todos"])
 async def delete_todo(
     todo_id: int, 
     db: AsyncSession = Depends(get_db)
