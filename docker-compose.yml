@@ -1,0 +1,54 @@
+services:
+  # PostgreSQL db
+  db:
+    image: postgres:17
+    container_name: todo_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: todo_db
+    ports:
+      - "5432:5432" # To access DB from the host (optional)
+    #volumes:
+    #  - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI backend
+  backend:
+    build: ./backend
+    container_name: todo_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Override DATABASE_URL to use the 'db' service, not localhost
+        DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/todo_db
+    depends_on:
+      db:
+        condition: service_healthy
+    # Optional: mount code for hot-reload during development
+    # volumes:
+    #   - ./backend:/app
+    # command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Svelte frontend
+  frontend:
+    build: ./frontend
+    container_name: todo_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    # For hot reload
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # preven overwriting
+
+#volumes:
+#  posgres_data:
